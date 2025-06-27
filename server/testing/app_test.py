@@ -9,7 +9,7 @@ class TestApp:
     with app.app_context():
         m = Message.query.filter(
             Message.body == "Hello 👋"
-            ).filter(Message.username == "Liza")
+        ).filter(Message.username == "Liza")
 
         for message in m:
             db.session.delete(message)
@@ -22,7 +22,7 @@ class TestApp:
             hello_from_liza = Message(
                 body="Hello 👋",
                 username="Liza")
-            
+
             db.session.add(hello_from_liza)
             db.session.commit()
 
@@ -50,8 +50,8 @@ class TestApp:
             app.test_client().post(
                 '/messages',
                 json={
-                    "body":"Hello 👋",
-                    "username":"Liza",
+                    "body": "Hello 👋",
+                    "username": "Liza",
                 }
             )
 
@@ -68,13 +68,12 @@ class TestApp:
             response = app.test_client().post(
                 '/messages',
                 json={
-                    "body":"Hello 👋",
-                    "username":"Liza",
+                    "body": "Hello 👋",
+                    "username": "Liza",
                 }
             )
 
             assert(response.content_type == 'application/json')
-
             assert(response.json["body"] == "Hello 👋")
             assert(response.json["username"] == "Liza")
 
@@ -84,50 +83,51 @@ class TestApp:
             db.session.delete(h)
             db.session.commit()
 
-
     def test_updates_body_of_message_in_database(self):
         '''updates the body of a message in the database.'''
         with app.app_context():
+            # Seed the DB
+            test_message = Message(body="Original", username="TestUser")
+            db.session.add(test_message)
+            db.session.commit()
 
-            m = Message.query.first()
-            id = m.id
-            body = m.body
+            id = test_message.id
+            old_body = test_message.body
 
             app.test_client().patch(
                 f'/messages/{id}',
-                json={
-                    "body":"Goodbye 👋",
-                }
+                json={"body": "Goodbye 👋"}
             )
 
-            g = Message.query.filter_by(body="Goodbye 👋").first()
-            assert(g)
+            updated = Message.query.get(id)
+            assert(updated.body == "Goodbye 👋")
 
-            g.body = body
-            db.session.add(g)
+            # Cleanup
+            updated.body = old_body
             db.session.commit()
 
     def test_returns_data_for_updated_message_as_json(self):
         '''returns data for the updated message as JSON.'''
         with app.app_context():
+            # Seed the DB
+            test_message = Message(body="Original", username="TestUser")
+            db.session.add(test_message)
+            db.session.commit()
 
-            m = Message.query.first()
-            id = m.id
-            body = m.body
+            id = test_message.id
+            old_body = test_message.body
 
             response = app.test_client().patch(
                 f'/messages/{id}',
-                json={
-                    "body":"Goodbye 👋",
-                }
+                json={"body": "Goodbye 👋"}
             )
 
             assert(response.content_type == 'application/json')
             assert(response.json["body"] == "Goodbye 👋")
 
-            g = Message.query.filter_by(body="Goodbye 👋").first()
-            g.body = body
-            db.session.add(g)
+            # Cleanup
+            updated = Message.query.get(id)
+            updated.body = old_body
             db.session.commit()
 
     def test_deletes_message_from_database(self):
@@ -137,7 +137,7 @@ class TestApp:
             hello_from_liza = Message(
                 body="Hello 👋",
                 username="Liza")
-            
+
             db.session.add(hello_from_liza)
             db.session.commit()
 
